@@ -63,7 +63,8 @@ export default {
                 alert('Please fill in all fields for the contribution');
                 return;
             }
-            fetch('http://localhost:8000/api/contributions/', {
+            console.log(this.contribution)
+            fetch('http://localhost:8000/api/authorbooks/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

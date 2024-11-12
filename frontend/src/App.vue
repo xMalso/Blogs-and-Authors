@@ -136,7 +136,8 @@ export default {
                 .catch(error => console.error('Error fetching books:', error));
         },
         fetchContributions() {
-            fetch('http://localhost:8000/api/contributions/')
+            console.log('error')
+            fetch('http://localhost:8000/api/authorbooks/')
                 .then(response => response.json())
                 .then(data => {
                     this.contributions = data.cont;
