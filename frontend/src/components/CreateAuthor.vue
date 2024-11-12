@@ -43,11 +43,12 @@ export default {
                 },
                 body: JSON.stringify(this.author)
             })
-                .then(response => response.json().then(data => ({ status: response.status, message: data.message, author: data.author })))
-                .then(({ status, message, author }) => {
+                .then(response => response.json().then(data => ({ status: response.status, message: data.message, id: data.author.id })))
+                .then(({ status, message, id }) => {
+                    this.author.id = id
                     console.log('Status:', status);
                     console.log('Message:', message);
-                    this.$emit('authorCreated', author);
+                    this.$emit('authorCreated', this.author);
                     this.resetForm();
                     alert('Author created successfully!');
                 })

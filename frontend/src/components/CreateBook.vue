@@ -51,11 +51,15 @@ export default {
                 },
                 body: JSON.stringify(this.book)
             })
-                .then(response => response.json().then(data => ({ status: response.status, message: data.message, book: data })))
-                .then(({ status, message, book }) => {
+                .then(response => response.json().then(data => ({ status: response.status, message: data.message, data: data })))
+                .then(({ status, message, data }) => {
                     console.log('Status:', status);
                     console.log('Message:', message);
-                    this.$emit('bookCreated', book);
+                    console.log(data)
+                    this.book['id'] = data.id
+                    this.book['publish_date'] = data.publish_date
+                    this.$emit('bookCreated',this.book)
+                    console.log(this.book)
                     this.resetForm();
                     alert('Book created successfully!');
                 })

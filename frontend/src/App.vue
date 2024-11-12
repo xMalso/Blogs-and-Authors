@@ -77,7 +77,7 @@
                         </div>
                         <div class="modal-body">
                             <create-book v-if="bookToEdit" :book="bookToEdit" @bookUpdated="handleBookUpdated" />
-                            <create-book v-else @bookCreated="fetchBooks; hideModal('bookModal')" :authors="authors" />
+                            <create-book v-else @bookCreated="addBook" :authors="authors" />
                         </div>
                     </div>
                 </div>
@@ -92,7 +92,7 @@
                         </div>
                         <div class="modal-body">
                             <create-author v-if="authorToEdit" :author="authorToEdit" @authorUpdated="handleAuthorUpdated" />
-                            <create-author v-else @authorCreated="addAuthor; hideModal('authorModal')" />
+                            <create-author v-else @authorCreated="addAuthor" />
                         </div>
                     </div>
                 </div>
@@ -177,9 +177,11 @@ export default {
         },
         addAuthor(newAuthor) {
             this.authors.push(newAuthor);
+            this.hideModal('authorModal');
         },
         addBook(newBook) {
             this.books.push(newBook);
+            this.hideModal('bookModal');
         },
         showModal(modalId) {
             const modalElement = document.getElementById(modalId);

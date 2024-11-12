@@ -111,7 +111,7 @@ def book_view(request):
                     contribution_date=contribution['contribution_date'],
                     contribution_summary=contribution['contribution_summary']
                 )
-            return JsonResponse({'message': 'Book created successfully.', 'id': book.id}, status=201)
+            return JsonResponse({'message': 'Book created successfully.', 'id': book.id, 'publish_date': book.publish_date}, status=201)
 
         elif request.method == 'GET':
             books = Book.objects.all()
