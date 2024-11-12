@@ -34,10 +34,7 @@ def author_book(request):
             contribution.is_primary_author = data.get('is_primary_author', contribution.is_primary_author)
             contribution.contribution_summary = data.get('contribution_summary', contribution.contribution_summary)
             contribution.save()
-            return JsonResponse({
-                'message': 'Contribution modified',
-                'cont': contribution
-            }, status=200)
+            return JsonResponse({'message': 'Contribution modified', 'cont': contribution}, status=200)
 
         elif request.method == 'DELETE':
             data = json.loads(request.body)
@@ -79,13 +76,13 @@ def author_view(request):
             author.bio = data.get('bio', author.bio)
             author.age = data.get('age', author.age)
             author.save()
-            return JsonResponse({'message': f'Modified author with id {author.id}'}, status=200)
+            return JsonResponse({'message': 'Author modified.', 'cont': author}, status=200)
 
         elif request.method == 'DELETE':
             data = json.loads(request.body)
             author_id = data.get('id')
             Author.objects.get(id=author_id).delete()
-            return JsonResponse({'message': f'Author with id {author_id} was deleted successfully.'}, status=204)
+            return JsonResponse({'message': 'Author deleted.'}, status=204)
 
         return JsonResponse({'message': 'Method Not Allowed.'}, status=405)
 
@@ -149,12 +146,12 @@ def book_view(request):
             book.save()
             for contribution in data.get('author_contributions', []):
                 author = Author.objects.get(id=contribution['author_id'])
-                contribution = AuthorBook.objects.filter(book=book, author=author).first()
-                if contribution:
-                    contribution.contribution_type = contribution.get('contribution_type', contribution.contribution_type)
-                    contribution.is_primary_author = contribution.get('is_primary_author', contribution.is_primary_author)
-                    contribution.contribution_summary = contribution.get('contribution_summary', contribution.contribution_summary)
-                    contribution.save()
+                author_book = AuthorBook.objects.filter(book=book, author=author).first()
+                if author_book:
+                    author_book.contribution_type = contribution.get('contribution_type', author_book.contribution_type)
+                    author_book.is_primary_author = contribution.get('is_primary_author', author_book.is_primary_author)
+                    author_book.contribution_summary = contribution.get('contribution_summary', author_book.contribution_summary)
+                    author_book.save()
                 else:
                     AuthorBook.objects.create(
                         book=book,
@@ -164,13 +161,13 @@ def book_view(request):
                         contribution_date=contribution['contribution_date'],
                         contribution_summary=contribution['contribution_summary']
                     )
-            return JsonResponse({'message': f'Modified book with id {book.id}'}, status=200)
+            return JsonResponse({'message': 'Book modified.', 'cont': book}, status=200)
 
         elif request.method == 'DELETE':
             data = json.loads(request.body)
             book_id = data.get('id')
             Book.objects.get(id=book_id).delete()
-            return JsonResponse({'message': f'Book with id {book_id} was deleted successfully.'}, status=204)
+            return JsonResponse({'message': 'Book deleted.'}, status=204)
 
         return JsonResponse({'message': 'Method Not Allowed.'}, status=405)
 
