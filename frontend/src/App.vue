@@ -34,7 +34,6 @@
                 <ul class="list-group mt-3">
                     <li v-for="book in books" :key="book.id" class="list-group-item">
                         <strong>{{ book.title }}</strong> - {{ book.description }} at {{  book.publish_date }}
-                        <button class="btn btn-warning btn-sm float-end ms-2" @click="editBook(book)">Edit</button>
                         <button class="btn btn-danger btn-sm float-end" @click="deleteBook(book.id)">Delete</button>
                     </li>
                 </ul>
@@ -45,7 +44,6 @@
                 <ul class="list-group mt-3">
                     <li v-for="author in authors" :key="author.id" class="list-group-item">
                         <strong>{{ author.name }}</strong> - {{ author.bio }}
-                        <button class="btn btn-warning btn-sm float-end ms-2" @click="editAuthor(author)">Edit</button>
                         <button class="btn btn-danger btn-sm float-end" @click="deleteAuthor(author.id)">Delete</button>
                     </li>
                 </ul>
