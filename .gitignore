@@ -861,3 +861,4 @@ frontend/node_modules/vue/server-renderer/index.d.ts
 frontend/node_modules/vue/server-renderer/index.js
 frontend/node_modules/vue/server-renderer/index.mjs
 frontend/node_modules/vue/server-renderer/package.json
+backend/db.sqlite3
