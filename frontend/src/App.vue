@@ -19,10 +19,10 @@
 
             <!-- Content Sections -->
             <div v-if="currentTab === 'contributions'">
-                <button class="btn btn-primary mt-3" @click="showModal('contributionModal')">Create Contribution</button>
+                <button class="btn btn-success mt-3" @click="showModal('contributionModal')">Create Contribution</button>
                 <ul class="list-group mt-3">
                     <li v-for="contribution in contributions" :key="contribution.id" class="list-group-item">
-                        <strong>{{ contribution.contribution_summary }}</strong> by {{ authorMap[contribution.author_id] }} for {{ bookMap[contribution.book_id] }}
+                        <strong>{{ contribution.contribution_summary }}</strong> by {{ authorMap[contribution.author_id] }} for {{ bookMap[contribution.book_id] }} at {{ contribution.contribution_date }}
                         <button class="btn btn-warning btn-sm float-end ms-2" @click="editContribution(contribution)">Edit</button>
                         <button class="btn btn-danger btn-sm float-end" @click="deleteContribution(contribution.id)">Delete</button>
                     </li>
@@ -30,10 +30,10 @@
             </div>
 
             <div v-if="currentTab === 'book'">
-                <button class="btn btn-primary mt-3" @click="showModal('bookModal')">Create Book</button>
+                <button class="btn btn-success mt-3" @click="showModal('bookModal')">Create Book</button>
                 <ul class="list-group mt-3">
                     <li v-for="book in books" :key="book.id" class="list-group-item">
-                        <strong>{{ book.title }}</strong> - {{ book.description }}
+                        <strong>{{ book.title }}</strong> - {{ book.description }} at {{  book.publish_date }}
                         <button class="btn btn-warning btn-sm float-end ms-2" @click="editBook(book)">Edit</button>
                         <button class="btn btn-danger btn-sm float-end" @click="deleteBook(book.id)">Delete</button>
                     </li>
@@ -41,7 +41,7 @@
             </div>
 
             <div v-if="currentTab === 'author'">
-                <button class="btn btn-primary mt-3" @click="showModal('authorModal')">Create Author</button>
+                <button class="btn btn-success mt-3" @click="showModal('authorModal')">Create Author</button>
                 <ul class="list-group mt-3">
                     <li v-for="author in authors" :key="author.id" class="list-group-item">
                         <strong>{{ author.name }}</strong> - {{ author.bio }}
@@ -79,7 +79,7 @@
                         </div>
                         <div class="modal-body">
                             <create-book v-if="bookToEdit" :book="bookToEdit" @bookUpdated="handleBookUpdated" />
-                            <create-book v-else @bookCreated="handleBookCreated" :authors="authors" />
+                            <create-book v-else @bookCreated="fetchBooks; hideModal('bookModal')" :authors="authors" />
                         </div>
                     </div>
                 </div>
@@ -94,7 +94,7 @@
                         </div>
                         <div class="modal-body">
                             <create-author v-if="authorToEdit" :author="authorToEdit" @authorUpdated="handleAuthorUpdated" />
-                            <create-author v-else @authorCreated="handleAuthorCreated" />
+                            <create-author v-else @authorCreated="addAuthor; hideModal('authorModal')" />
                         </div>
                     </div>
                 </div>
@@ -178,22 +178,10 @@ export default {
             }
         },
         addAuthor(newAuthor) {
-            this.authors.push(newAuthor);  // Add new author dynamically
-        },
-        updateAuthor(updatedAuthor) {
-            const index = this.authors.findIndex(a => a.id === updatedAuthor.id);
-            if (index !== -1) {
-                this.authors[index] = updatedAuthor;  // Update author dynamically
-            }
+            this.authors.push(newAuthor);
         },
         addBook(newBook) {
-            this.books.push(newBook);  // Add new book dynamically
-        },
-        updateBook(updatedBook) {
-            const index = this.books.findIndex(b => b.id === updatedBook.id);
-            if (index !== -1) {
-                this.books[index] = updatedBook;  // Update book dynamically
-            }
+            this.books.push(newBook);
         },
         showModal(modalId) {
             const modalElement = document.getElementById(modalId);
@@ -208,52 +196,56 @@ export default {
         deleteContribution(contributionId) {
             fetch(`http://localhost:8000/api/authorbooks/`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ id: contributionId })
             })
-            .then(response => {
-                if (response.status === 204) {
-                    this.contributions = this.contributions.filter(contribution => contribution.id !== contributionId);
-                    alert('Contribution deleted successfully!');
-                } else {
-                    return response.json().then(data => alert('Error deleting contribution: ' + data.message));
-                }
-            })
-            .catch(error => alert('Error deleting contribution'));
+                .then(response => {
+                    if (response.status === 204) {
+                        this.contributions = this.contributions.filter(contribution => contribution.id !== contributionId);
+                        alert('Contribution deleted successfully!');
+                    } else {
+                        return response.json().then(data => {
+                            alert('Error deleting contribution: ' + data.message);
+                        });
+                    }
+                })
+                .catch(error => alert('Error deleting contribution'));
         },
 
         deleteBook(bookId) {
             fetch(`http://localhost:8000/api/books/`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({id: bookId})
+                body: JSON.stringify({id:bookId})
             })
-            .then(response => {
-                if (response.status === 204) {
-                    this.books = this.books.filter(book => book.id !== bookId);
-                    alert('Book deleted successfully!');
-                } else {
-                    return response.json().then(data => alert('Error deleting book: ' + data.message));
-                }
-            })
-            .catch(error => alert('Error deleting book'));
+                .then(response => {
+                    if (response.status === 204) {
+                        this.books = this.books.filter(book => book.id !== bookId);
+                        alert('Book deleted successfully!');
+                    } else {
+                        return response.json().then(data => alert('Error deleting book: ' + data.message));
+                    }
+                })
+                .catch(error => alert('Error deleting book'));
         },
 
         deleteAuthor(authorId) {
             fetch(`http://localhost:8000/api/authors/`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: authorId })
+                body: JSON.stringify({id:authorId})
             })
-            .then(response => {
-                if (response.status === 204) {
-                    this.authors = this.authors.filter(author => author.id !== authorId);
-                    alert('Author deleted successfully!');
-                } else {
-                    return response.json().then(data => alert('Error deleting author: ' + data.message));
-                }
-            })
-            .catch(error => alert('Error deleting author'));
+                .then(response => {
+                    if (response.status === 204) {
+                        this.authors = this.authors.filter(author => author.id !== authorId);
+                        alert('Author deleted successfully!');
+                    } else {
+                        return response.json().then(data => alert('Error deleting author: ' + data.message));
+                    }
+                })
+                .catch(error => alert('Error deleting author'));
         },
 
         editContribution(contribution) {
@@ -282,22 +274,18 @@ export default {
         },
 
         handleBookUpdated(updatedBook) {
-            this.updateBook(updatedBook);
-            this.hideModal('bookModal');
-        },
-
-        handleBookCreated(newBook) {
-            this.addBook(newBook);
+            const index = this.books.findIndex(b => b.id === updatedBook.id);
+            if (index !== -1) {
+                this.books[index] = updatedBook;
+            }
             this.hideModal('bookModal');
         },
 
         handleAuthorUpdated(updatedAuthor) {
-            this.updateAuthor(updatedAuthor);
-            this.hideModal('authorModal');
-        },
-
-        handleAuthorCreated(newAuthor) {
-            this.addAuthor(newAuthor);
+            const index = this.authors.findIndex(a => a.id === updatedAuthor.id);
+            if (index !== -1) {
+                this.authors[index] = updatedAuthor;
+            }
             this.hideModal('authorModal');
         }
     }

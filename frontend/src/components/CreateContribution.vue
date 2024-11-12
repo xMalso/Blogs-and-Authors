@@ -88,7 +88,9 @@ export default {
             })
                 .then(response => response.json())
                 .then(data => {
-                    this.$emit('contributionCreated', data.contribution);
+                    this.contribution.id = data.id
+                    this.contribution.contribution_date = data.date
+                    this.$emit('contributionCreated', this.contribution);
                     this.resetForm();
                     alert('Contribution created successfully!');
                 })

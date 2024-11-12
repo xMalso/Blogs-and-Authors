@@ -43,24 +43,22 @@ export default {
                 },
                 body: JSON.stringify(this.author)
             })
-            .then(response => response.json().then(data => ({
-                status: response.status,
-                message: data.message,
-                author: data.author // Ensure this contains 'id' and other details
-            })))
-            .then(({ status, message, author }) => {
-                console.log('Status:', status);
-                console.log('Message:', message);
-                this.$emit('authorCreated', author); // Ensure author is passed correctly
-                this.resetForm();
-                alert('Author created successfully!');
-            })
-            .catch(error => {
-                console.error('Error creating author:', error);
-                alert('Error creating author');
-            });
+                .then(response => response.json().then(data => ({ status: response.status, message: data.message, author: data.author })))
+                .then(({ status, message, author }) => {
+                    console.log('Status:', status);
+                    console.log('Message:', message);
+                    this.$emit('authorCreated', author);
+                    this.resetForm();
+                    alert('Author created successfully!');
+                })
+                .catch(error => {
+                    console.error('Error creating author:', error);
+                    alert('Error creating author');
+                });
+        },
+        resetForm() {
+            this.author = { name: '', bio: '', age: null };
         }
     }
-
 };
 </script>

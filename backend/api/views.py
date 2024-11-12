@@ -62,8 +62,7 @@ def author_view(request):
                 bio=data['bio'],
                 age=data['age']
             )
-return JsonResponse({'message': 'Author created successfully.', 'author': {'id': author.id}}, status=201)
-
+            return JsonResponse({'message': 'Author created successfully.', 'author': {'id': author.id}}, status=201)
         elif request.method == 'GET':
             authors = list(Author.objects.all().values())
             return JsonResponse({'authors': authors, 'message': 'Authors retrieved successfully.'}, status=200)
@@ -131,6 +130,7 @@ def book_view(request):
                     'id': book.id,
                     'title': book.title,
                     'description': book.description,
+                    'publish_date': book.publish_date,
                     'author_contributions': author_contributions
                 })
             return JsonResponse({'books': books_data, 'message': 'Books retrieved successfully.'}, status=200)
