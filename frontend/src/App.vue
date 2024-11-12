@@ -19,20 +19,34 @@
 
             <!-- Content Sections -->
             <div v-if="currentTab === 'contributions'">
-                <button class="btn btn-primary" @click="showModal('contributionModal')">Create Contribution</button>
-                <create-contribution @contributionCreated="fetchContributions" :authors="authors" :books="books" />
+                <button class="btn btn-primary mt-3" @click="showModal('contributionModal')">Create
+                    Contribution</button>
+                <ul class="list-group mt-3">
+                    <li v-for="contribution in contributions" :key="contribution.id" class="list-group-item">
+                        <strong>{{ contribution.contribution_summary }}</strong> by {{ contribution.author_name }} for
+                        {{ contribution.book_title }}
+                    </li>
+                </ul>
             </div>
             <div v-if="currentTab === 'book'">
-                <button class="btn btn-primary" @click="showModal('bookModal')">Create Book</button>
-                <create-book @bookCreated="fetchBooks" :authors="authors" />
+                <button class="btn btn-primary mt-3" @click="showModal('bookModal')">Create Book</button>
+                <ul class="list-group mt-3">
+                    <li v-for="book in books" :key="book.id" class="list-group-item">
+                        <strong>{{ book.title }}</strong> - {{ book.description }}
+                    </li>
+                </ul>
             </div>
             <div v-if="currentTab === 'author'">
-                <button class="btn btn-primary" @click="showModal('authorModal')">Create Author</button>
-                <create-author @authorCreated="addAuthor" />
+                <button class="btn btn-primary mt-3" @click="showModal('authorModal')">Create Author</button>
+                <ul class="list-group mt-3">
+                    <li v-for="author in authors" :key="author.id" class="list-group-item">
+                        <strong>{{ author.name }}</strong> - {{ author.bio }}
+                    </li>
+                </ul>
             </div>
 
             <!-- Modals -->
-            <div class="modal" id="contributionModal" tabindex="-1">
+            <div class="modal fade" id="contributionModal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -48,7 +62,7 @@
                 </div>
             </div>
 
-            <div class="modal" id="bookModal" tabindex="-1">
+            <div class="modal fade" id="bookModal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -62,7 +76,7 @@
                 </div>
             </div>
 
-            <div class="modal" id="authorModal" tabindex="-1">
+            <div class="modal fade" id="authorModal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -122,7 +136,7 @@ export default {
                 .catch(error => console.error('Error fetching books:', error));
         },
         fetchContributions() {
-            fetch('http://localhost:8000/api/authorbooks/')
+            fetch('http://localhost:8000/api/contributions/')
                 .then(response => response.json())
                 .then(data => {
                     this.contributions = data.cont;
@@ -131,7 +145,6 @@ export default {
         },
         addAuthor(newAuthor) {
             this.authors.push(newAuthor);
-            this.fetchAuthors();  // Optional: refresh the author list if necessary
         },
         showModal(modalId) {
             const modalElement = document.getElementById(modalId);

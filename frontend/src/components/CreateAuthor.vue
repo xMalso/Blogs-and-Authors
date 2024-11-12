@@ -43,7 +43,7 @@ export default {
                 },
                 body: JSON.stringify(this.author)
             })
-                .then(response => response.json().then(data => ({ status: response.status, message: data.message, author: data })))
+                .then(response => response.json().then(data => ({ status: response.status, message: data.message, author: data.author })))
                 .then(({ status, message, author }) => {
                     console.log('Status:', status);
                     console.log('Message:', message);
