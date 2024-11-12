@@ -16,12 +16,10 @@ def author_book(request):
             contribution = AuthorBook.objects.create(
                 author_id=data.get('author_id'),
                 book_id=data.get('book_id'),
-                contribution_type=data.get('contribution_type'),
                 is_primary_author=data.get('is_primary_author'),
-                contribution_date=data.get('contribution_date'),
                 contribution_summary=data.get('contribution_summary')
             )
-            return JsonResponse({'message': 'Contribution made!'}, status=201)
+            return JsonResponse({'message': 'Contribution made!','date':contribution.date,'id': contribution.id}, status=201)
 
         elif request.method == 'GET':
             contributions = list(AuthorBook.objects.all().values())
@@ -29,12 +27,13 @@ def author_book(request):
 
         elif request.method == 'PUT':
             data = json.loads(request.body)
-            contribution = AuthorBook.objects.get(id=data['id'])
-            contribution.contribution_type = data.get('contribution_type', contribution.contribution_type)
-            contribution.is_primary_author = data.get('is_primary_author', contribution.is_primary_author)
-            contribution.contribution_summary = data.get('contribution_summary', contribution.contribution_summary)
+            contribution = AuthorBook.objects.get(id=data.get('id'))
+            contribution.book_id = data.get('book_id')
+            contribution.author_id = data.get('author_id')
+            contribution.is_primary_author = data.get('is_primary_author')
+            contribution.contribution_summary = data.get('contribution_summary')
             contribution.save()
-            return JsonResponse({'message': 'Contribution modified', 'cont': contribution}, status=200)
+            return JsonResponse({'message': 'Contribution modified'}, status=200)
 
         elif request.method == 'DELETE':
             data = json.loads(request.body)
@@ -63,7 +62,7 @@ def author_view(request):
                 bio=data['bio'],
                 age=data['age']
             )
-            return JsonResponse({'message': 'Author created successfully.', 'id': author.id}, status=201)
+return JsonResponse({'message': 'Author created successfully.', 'author': {'id': author.id}}, status=201)
 
         elif request.method == 'GET':
             authors = list(Author.objects.all().values())
@@ -109,7 +108,6 @@ def book_view(request):
                 AuthorBook.objects.create(
                     book=book,
                     author=author,
-                    contribution_type=contribution['contribution_type'],
                     is_primary_author=contribution['is_primary_author'],
                     contribution_date=contribution['contribution_date'],
                     contribution_summary=contribution['contribution_summary']
@@ -125,7 +123,6 @@ def book_view(request):
                     author_contributions.append({
                         'id': contribution.id,
                         'author_name': contribution.author.name,
-                        'contribution_type': contribution.contribution_type,
                         'is_primary_author': contribution.is_primary_author,
                         'contribution_date': contribution.contribution_date,
                         'contribution_summary': contribution.contribution_summary
@@ -148,7 +145,6 @@ def book_view(request):
                 author = Author.objects.get(id=contribution['author_id'])
                 author_book = AuthorBook.objects.filter(book=book, author=author).first()
                 if author_book:
-                    author_book.contribution_type = contribution.get('contribution_type', author_book.contribution_type)
                     author_book.is_primary_author = contribution.get('is_primary_author', author_book.is_primary_author)
                     author_book.contribution_summary = contribution.get('contribution_summary', author_book.contribution_summary)
                     author_book.save()
@@ -156,7 +152,6 @@ def book_view(request):
                     AuthorBook.objects.create(
                         book=book,
                         author=author,
-                        contribution_type=contribution['contribution_type'],
                         is_primary_author=contribution['is_primary_author'],
                         contribution_date=contribution['contribution_date'],
                         contribution_summary=contribution['contribution_summary']

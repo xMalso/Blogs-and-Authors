@@ -19,28 +19,34 @@
 
             <!-- Content Sections -->
             <div v-if="currentTab === 'contributions'">
-                <button class="btn btn-primary mt-3" @click="showModal('contributionModal')">Create
-                    Contribution</button>
+                <button class="btn btn-primary mt-3" @click="showModal('contributionModal')">Create Contribution</button>
                 <ul class="list-group mt-3">
                     <li v-for="contribution in contributions" :key="contribution.id" class="list-group-item">
-                        <strong>{{ contribution.contribution_summary }}</strong> by {{ contribution.author_name }} for
-                        {{ contribution.book_title }}
+                        <strong>{{ contribution.contribution_summary }}</strong> by {{ authorMap[contribution.author_id] }} for {{ bookMap[contribution.book_id] }}
+                        <button class="btn btn-warning btn-sm float-end ms-2" @click="editContribution(contribution)">Edit</button>
+                        <button class="btn btn-danger btn-sm float-end" @click="deleteContribution(contribution.id)">Delete</button>
                     </li>
                 </ul>
             </div>
+
             <div v-if="currentTab === 'book'">
                 <button class="btn btn-primary mt-3" @click="showModal('bookModal')">Create Book</button>
                 <ul class="list-group mt-3">
                     <li v-for="book in books" :key="book.id" class="list-group-item">
                         <strong>{{ book.title }}</strong> - {{ book.description }}
+                        <button class="btn btn-warning btn-sm float-end ms-2" @click="editBook(book)">Edit</button>
+                        <button class="btn btn-danger btn-sm float-end" @click="deleteBook(book.id)">Delete</button>
                     </li>
                 </ul>
             </div>
+
             <div v-if="currentTab === 'author'">
                 <button class="btn btn-primary mt-3" @click="showModal('authorModal')">Create Author</button>
                 <ul class="list-group mt-3">
                     <li v-for="author in authors" :key="author.id" class="list-group-item">
                         <strong>{{ author.name }}</strong> - {{ author.bio }}
+                        <button class="btn btn-warning btn-sm float-end ms-2" @click="editAuthor(author)">Edit</button>
+                        <button class="btn btn-danger btn-sm float-end" @click="deleteAuthor(author.id)">Delete</button>
                     </li>
                 </ul>
             </div>
@@ -50,13 +56,15 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Create Contribution</h5>
+                            <h5 class="modal-title">{{ contributionToEdit ? 'Edit Contribution' : 'Create Contribution' }}</h5>
                             <button type="button" class="btn-close" @click="hideModal('contributionModal')"></button>
                         </div>
                         <div class="modal-body">
-                            <create-contribution
-                                @contributionCreated="fetchContributions; hideModal('contributionModal')"
-                                :authors="authors" :books="books" />
+                            <create-contribution v-if="contributionToEdit" :authors="authors" :books="books"
+                                :contributionToEdit="contributionToEdit"
+                                @contributionUpdated="handleContributionUpdated" />
+                            <create-contribution v-else :authors="authors" :books="books"
+                                @contributionCreated="handleContributionCreated" />
                         </div>
                     </div>
                 </div>
@@ -66,11 +74,12 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Create Book</h5>
+                            <h5 class="modal-title">{{ bookToEdit ? 'Edit Book' : 'Create Book' }}</h5>
                             <button type="button" class="btn-close" @click="hideModal('bookModal')"></button>
                         </div>
                         <div class="modal-body">
-                            <create-book @bookCreated="fetchBooks; hideModal('bookModal')" :authors="authors" />
+                            <create-book v-if="bookToEdit" :book="bookToEdit" @bookUpdated="handleBookUpdated" />
+                            <create-book v-else @bookCreated="handleBookCreated" :authors="authors" />
                         </div>
                     </div>
                 </div>
@@ -80,20 +89,19 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Create Author</h5>
+                            <h5 class="modal-title">{{ authorToEdit ? 'Edit Author' : 'Create Author' }}</h5>
                             <button type="button" class="btn-close" @click="hideModal('authorModal')"></button>
                         </div>
                         <div class="modal-body">
-                            <create-author @authorCreated="addAuthor; hideModal('authorModal')" />
+                            <create-author v-if="authorToEdit" :author="authorToEdit" @authorUpdated="handleAuthorUpdated" />
+                            <create-author v-else @authorCreated="handleAuthorCreated" />
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </template>
-
 <script>
 import CreateBook from './components/CreateBook.vue';
 import CreateAuthor from './components/CreateAuthor.vue';
@@ -110,8 +118,25 @@ export default {
             currentTab: 'contributions',
             authors: [],
             books: [],
-            contributions: []
+            contributions: [],
+            contributionToEdit: null,
+            authorToEdit: null,
+            bookToEdit: null
         };
+    },
+    computed: {
+        authorMap() {
+            return this.authors.reduce((map, author) => {
+                map[author.id] = author.name;
+                return map;
+            }, {});
+        },
+        bookMap() {
+            return this.books.reduce((map, book) => {
+                map[book.id] = book.title;
+                return map;
+            }, {});
+        }
     },
     mounted() {
         this.fetchAuthors();
@@ -136,7 +161,6 @@ export default {
                 .catch(error => console.error('Error fetching books:', error));
         },
         fetchContributions() {
-            console.log('error')
             fetch('http://localhost:8000/api/authorbooks/')
                 .then(response => response.json())
                 .then(data => {
@@ -144,8 +168,32 @@ export default {
                 })
                 .catch(error => console.error('Error fetching contributions:', error));
         },
+        addContribution(newContribution) {
+            this.contributions.push(newContribution);
+        },
+        updateContribution(updatedContribution) {
+            const index = this.contributions.findIndex(c => c.id === updatedContribution.id);
+            if (index !== -1) {
+                this.contributions[index] = updatedContribution;
+            }
+        },
         addAuthor(newAuthor) {
-            this.authors.push(newAuthor);
+            this.authors.push(newAuthor);  // Add new author dynamically
+        },
+        updateAuthor(updatedAuthor) {
+            const index = this.authors.findIndex(a => a.id === updatedAuthor.id);
+            if (index !== -1) {
+                this.authors[index] = updatedAuthor;  // Update author dynamically
+            }
+        },
+        addBook(newBook) {
+            this.books.push(newBook);  // Add new book dynamically
+        },
+        updateBook(updatedBook) {
+            const index = this.books.findIndex(b => b.id === updatedBook.id);
+            if (index !== -1) {
+                this.books[index] = updatedBook;  // Update book dynamically
+            }
         },
         showModal(modalId) {
             const modalElement = document.getElementById(modalId);
@@ -156,6 +204,101 @@ export default {
             const modalElement = document.getElementById(modalId);
             const modal = bootstrap.Modal.getInstance(modalElement);
             modal.hide();
+        },
+        deleteContribution(contributionId) {
+            fetch(`http://localhost:8000/api/authorbooks/`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: contributionId })
+            })
+            .then(response => {
+                if (response.status === 204) {
+                    this.contributions = this.contributions.filter(contribution => contribution.id !== contributionId);
+                    alert('Contribution deleted successfully!');
+                } else {
+                    return response.json().then(data => alert('Error deleting contribution: ' + data.message));
+                }
+            })
+            .catch(error => alert('Error deleting contribution'));
+        },
+
+        deleteBook(bookId) {
+            fetch(`http://localhost:8000/api/books/`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({id: bookId})
+            })
+            .then(response => {
+                if (response.status === 204) {
+                    this.books = this.books.filter(book => book.id !== bookId);
+                    alert('Book deleted successfully!');
+                } else {
+                    return response.json().then(data => alert('Error deleting book: ' + data.message));
+                }
+            })
+            .catch(error => alert('Error deleting book'));
+        },
+
+        deleteAuthor(authorId) {
+            fetch(`http://localhost:8000/api/authors/`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: authorId })
+            })
+            .then(response => {
+                if (response.status === 204) {
+                    this.authors = this.authors.filter(author => author.id !== authorId);
+                    alert('Author deleted successfully!');
+                } else {
+                    return response.json().then(data => alert('Error deleting author: ' + data.message));
+                }
+            })
+            .catch(error => alert('Error deleting author'));
+        },
+
+        editContribution(contribution) {
+            this.contributionToEdit = { ...contribution };
+            this.showModal('contributionModal');
+        },
+
+        editBook(book) {
+            this.bookToEdit = { ...book };
+            this.showModal('bookModal');
+        },
+
+        editAuthor(author) {
+            this.authorToEdit = { ...author };
+            this.showModal('authorModal');
+        },
+
+        handleContributionUpdated(updatedContribution) {
+            this.updateContribution(updatedContribution);
+            this.hideModal('contributionModal');
+        },
+
+        handleContributionCreated(newContribution) {
+            this.addContribution(newContribution);
+            this.hideModal('contributionModal');
+        },
+
+        handleBookUpdated(updatedBook) {
+            this.updateBook(updatedBook);
+            this.hideModal('bookModal');
+        },
+
+        handleBookCreated(newBook) {
+            this.addBook(newBook);
+            this.hideModal('bookModal');
+        },
+
+        handleAuthorUpdated(updatedAuthor) {
+            this.updateAuthor(updatedAuthor);
+            this.hideModal('authorModal');
+        },
+
+        handleAuthorCreated(newAuthor) {
+            this.addAuthor(newAuthor);
+            this.hideModal('authorModal');
         }
     }
 };

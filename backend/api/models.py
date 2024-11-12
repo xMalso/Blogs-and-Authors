@@ -36,7 +36,6 @@ class AuthorBook(models.Model):
     """
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    contribution_type = models.CharField(max_length=100)
     is_primary_author = models.BooleanField()
     contribution_date = models.DateField(auto_now_add=True)
     contribution_summary = models.TextField()

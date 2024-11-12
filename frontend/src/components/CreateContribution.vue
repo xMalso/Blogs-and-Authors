@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h6>Create New Contribution</h6>
+        <h6>{{ contribution.id ? 'Edit Contribution' : 'Create New Contribution' }}</h6>
         <form @submit.prevent="submitContribution">
             <div class="mb-2">
                 <label for="contributionBook" class="form-label">Select Book</label>
@@ -21,10 +21,6 @@
                 </select>
             </div>
             <div class="mb-2">
-                <label for="contributionDate" class="form-label">Contribution Date</label>
-                <input type="date" v-model="contribution.contribution_date" class="form-control" required />
-            </div>
-            <div class="mb-2">
                 <label for="contributionSummary" class="form-label">Contribution Summary</label>
                 <textarea v-model="contribution.contribution_summary" class="form-control" required></textarea>
             </div>
@@ -35,7 +31,9 @@
                     <option :value="false">No</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Create Contribution</button>
+            <button type="submit" class="btn btn-primary">
+                {{ contribution.id ? 'Update Contribution' : 'Create Contribution' }}
+            </button>
         </form>
     </div>
 </template>
@@ -44,18 +42,29 @@
 export default {
     props: {
         books: Array,
-        authors: Array
+        authors: Array,
+        contributionToEdit: Object
     },
     data() {
         return {
             contribution: {
                 book_id: '',
                 author_id: '',
-                contribution_date: '',
                 contribution_summary: '',
-                is_primary_author: false
+                is_primary_author: false,
+                id: null
             }
         };
+    },
+    watch: {
+        contributionToEdit: {
+            immediate: true,
+            handler(newVal) {
+                if (newVal && newVal.id) {
+                    this.contribution = { ...newVal };
+                }
+            }
+        }
     },
     methods: {
         submitContribution() {
@@ -63,7 +72,13 @@ export default {
                 alert('Please fill in all fields for the contribution');
                 return;
             }
-            console.log(this.contribution)
+            if (this.contribution.id) {
+                this.updateContribution();
+            } else {
+                this.createContribution();
+            }
+        },
+        createContribution() {
             fetch('http://localhost:8000/api/authorbooks/', {
                 method: 'POST',
                 headers: {
@@ -71,11 +86,9 @@ export default {
                 },
                 body: JSON.stringify(this.contribution)
             })
-                .then(response => response.json().then(data => ({ status: response.status, message: data.message })))
-                .then(({ status, message }) => {
-                    console.log('Status:', status);
-                    console.log('Message:', message);
-                    this.$emit('contributionCreated', this.contribution);
+                .then(response => response.json())
+                .then(data => {
+                    this.$emit('contributionCreated', data.contribution);
                     this.resetForm();
                     alert('Contribution created successfully!');
                 })
@@ -84,8 +97,52 @@ export default {
                     alert('Error creating contribution');
                 });
         },
+        updateContribution() {
+            fetch(`http://localhost:8000/api/authorbooks/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(this.contribution)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    this.$emit('contributionUpdated', this.contribution);
+                    this.resetForm();
+                    alert('Contribution updated successfully!');
+                })
+                .catch(error => {
+                    console.error('Error updating contribution:', error);
+                    alert('Error updating contribution');
+                });
+        },
+        deleteContribution() {
+            fetch(`http://localhost:8000/api/authorbooks/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: this.contribution.id })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        this.$emit('contributionDeleted', this.contribution.id);
+                        this.resetForm();
+                        alert('Contribution deleted successfully!');
+                    } else {
+                        response.json().then(data => {
+                            console.error('Error deleting contribution:', data);
+                            alert('Error deleting contribution');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting contribution:', error);
+                    alert('Error deleting contribution');
+                });
+        },
         resetForm() {
-            this.contribution = { book_id: '', author_id: '', contribution_date: '', contribution_summary: '', is_primary_author: false };
+            this.contribution = { book_id: '', author_id: '', contribution_summary: '', is_primary_author: false, id: null };
         }
     }
 };
