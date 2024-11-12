@@ -14,8 +14,8 @@ def author_book(request):
         if request.method == 'POST':
             data = json.loads(request.body)
             contribution = AuthorBook.objects.create(
-                author_id=data.get('author'),
-                book_id=data.get('book'),
+                author_id=data.get('author_id'),
+                book_id=data.get('book_id'),
                 contribution_type=data.get('contribution_type'),
                 is_primary_author=data.get('is_primary_author'),
                 contribution_date=data.get('contribution_date'),
