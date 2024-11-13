@@ -11,6 +11,10 @@
                 <textarea id="bookDescription" v-model="book.description" class="form-control" required></textarea>
             </div>
             <div class="mb-2">
+                <label for="bookFiction" class="form-label">Fiction</label>
+                <div><input type="checkbox" id="bookFiction" v-model="book.fiction" class="form-check-input"></div>
+            </div>
+            <div class="mb-2">
                 <label for="author" class="form-label">Select Author</label>
                 <select v-model="book.author.author_id" class="form-control" required>
                     <option value="">Select an author</option>
@@ -32,6 +36,7 @@ export default {
             book: {
                 title: '',
                 description: '',
+                fiction: false,
                 author: {
                     author_id: ''
                 }
@@ -72,6 +77,7 @@ export default {
             this.book = {
                 title: '',
                 description: '',
+                fiction: false,
                 author: {
                     author_id: ''
                 }

@@ -24,13 +24,6 @@
                 <label for="contributionSummary" class="form-label">Contribution Summary</label>
                 <textarea v-model="contribution.contribution_summary" class="form-control" required></textarea>
             </div>
-            <div class="mb-2">
-                <label for="isPrimaryAuthor" class="form-label">Is Primary Author?</label>
-                <select v-model="contribution.is_primary_author" class="form-control" required>
-                    <option :value="true">Yes</option>
-                    <option :value="false">No</option>
-                </select>
-            </div>
             <button type="submit" class="btn btn-primary">
                 {{ contribution.id ? 'Update Contribution' : 'Create Contribution' }}
             </button>
@@ -51,7 +44,6 @@ export default {
                 book_id: '',
                 author_id: '',
                 contribution_summary: '',
-                is_primary_author: false,
                 id: null
             }
         };
@@ -86,10 +78,14 @@ export default {
                 },
                 body: JSON.stringify(this.contribution)
             })
-                .then(response => response.json())
-                .then(data => {
-                    this.contribution.id = data.id
-                    this.contribution.contribution_date = data.date
+                .then(response => response.json().then(data => ({ id: data.id, date: data.date})))
+                .then(({id,date}) => {
+
+                    console.log(id)
+                    console.log(date)
+                    this.contribution.id = id
+                    this.contribution.contribution_date = date
+                    console.log(this.contribution)
                     this.$emit('contributionCreated', this.contribution);
                     this.resetForm();
                     alert('Contribution created successfully!');
@@ -144,7 +140,7 @@ export default {
                 });
         },
         resetForm() {
-            this.contribution = { book_id: '', author_id: '', contribution_summary: '', is_primary_author: false, id: null };
+            this.contribution = { book_id: '', author_id: '', contribution_summary: '', id: null };
         }
     }
 };

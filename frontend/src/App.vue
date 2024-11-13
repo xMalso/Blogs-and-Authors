@@ -34,6 +34,7 @@
                 <ul class="list-group mt-3">
                     <li v-for="book in books" :key="book.id" class="list-group-item">
                         <strong>{{ book.title }}</strong> - {{ book.description }} at {{  book.publish_date }}
+                        <br>{{ book.fiction ? "Fiction" : "Non-Fiction" }}
                         <button class="btn btn-danger btn-sm float-end" @click="deleteBook(book.id)">Delete</button>
                     </li>
                 </ul>
@@ -43,7 +44,7 @@
                 <button class="btn btn-success mt-3" @click="showModal('authorModal')">Create Author</button>
                 <ul class="list-group mt-3">
                     <li v-for="author in authors" :key="author.id" class="list-group-item">
-                        <strong>{{ author.name }}</strong> - {{ author.bio }}
+                        <strong>{{ author.name }}</strong> aged {{ author.age }} - {{ author.bio }}
                         <button class="btn btn-danger btn-sm float-end" @click="deleteAuthor(author.id)">Delete</button>
                     </li>
                 </ul>

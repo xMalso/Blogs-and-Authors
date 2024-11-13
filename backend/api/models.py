@@ -23,6 +23,7 @@ class Book(models.Model):
     description = models.TextField()
     publish_date = models.DateField(auto_now_add=True)
     authors = models.ManyToManyField(Author, through='AuthorBook')
+    fiction = models.BooleanField()
 
     def __str__(self):
         """
@@ -36,6 +37,5 @@ class AuthorBook(models.Model):
     """
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    is_primary_author = models.BooleanField()
     contribution_date = models.DateField(auto_now_add=True)
     contribution_summary = models.TextField()

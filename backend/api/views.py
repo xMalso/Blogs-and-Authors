@@ -16,10 +16,9 @@ def author_book(request):
             contribution = AuthorBook.objects.create(
                 author_id=data.get('author_id'),
                 book_id=data.get('book_id'),
-                is_primary_author=data.get('is_primary_author'),
                 contribution_summary=data.get('contribution_summary')
             )
-            return JsonResponse({'message': 'Contribution made!','date':contribution.date,'id': contribution.id}, status=201)
+            return JsonResponse({'message': 'Contribution made!','date':contribution.contribution_date,'id': contribution.id}, status=201)
 
         elif request.method == 'GET':
             contributions = list(AuthorBook.objects.all().values())
@@ -30,7 +29,6 @@ def author_book(request):
             contribution = AuthorBook.objects.get(id=data.get('id'))
             contribution.book_id = data.get('book_id')
             contribution.author_id = data.get('author_id')
-            contribution.is_primary_author = data.get('is_primary_author')
             contribution.contribution_summary = data.get('contribution_summary')
             contribution.save()
             return JsonResponse({'message': 'Contribution modified'}, status=200)
@@ -100,14 +98,14 @@ def book_view(request):
             data = json.loads(request.body)
             book = Book.objects.create(
                 title=data['title'],
-                description=data['description']
+                description=data['description'],
+                fiction=data['fiction'],
             )
             for contribution in data.get('author_contributions', []):
                 author = Author.objects.get(name=contribution['author_name'])
                 AuthorBook.objects.create(
                     book=book,
                     author=author,
-                    is_primary_author=contribution['is_primary_author'],
                     contribution_date=contribution['contribution_date'],
                     contribution_summary=contribution['contribution_summary']
                 )
@@ -122,7 +120,6 @@ def book_view(request):
                     author_contributions.append({
                         'id': contribution.id,
                         'author_name': contribution.author.name,
-                        'is_primary_author': contribution.is_primary_author,
                         'contribution_date': contribution.contribution_date,
                         'contribution_summary': contribution.contribution_summary
                     })
@@ -130,6 +127,7 @@ def book_view(request):
                     'id': book.id,
                     'title': book.title,
                     'description': book.description,
+                    'fiction': book.fiction,
                     'publish_date': book.publish_date,
                     'author_contributions': author_contributions
                 })
@@ -140,19 +138,18 @@ def book_view(request):
             book = Book.objects.get(id=data['id'])
             book.title = data.get('title', book.title)
             book.description = data.get('description', book.description)
+            book.fiction = data.get('fiction', book.fiction)
             book.save()
             for contribution in data.get('author_contributions', []):
                 author = Author.objects.get(id=contribution['author_id'])
                 author_book = AuthorBook.objects.filter(book=book, author=author).first()
                 if author_book:
-                    author_book.is_primary_author = contribution.get('is_primary_author', author_book.is_primary_author)
                     author_book.contribution_summary = contribution.get('contribution_summary', author_book.contribution_summary)
                     author_book.save()
                 else:
                     AuthorBook.objects.create(
                         book=book,
                         author=author,
-                        is_primary_author=contribution['is_primary_author'],
                         contribution_date=contribution['contribution_date'],
                         contribution_summary=contribution['contribution_summary']
                     )
